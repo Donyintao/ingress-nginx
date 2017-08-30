@@ -42,8 +42,6 @@ Role Based Access Control是由四个资源组成 :
 
 ### Bindings
 
-The ServiceAccount `nginx-ingress-serviceaccount` is bound to the Role
-`nginx-ingress-role` and the ClusterRole `nginx-ingress-clusterrole`.
 ServiceAccount nginx-ingss-ServiceAccount将被绑定到nginx-ingss-role和nginx-ingress-ClusterRole。
 
 ## Namespace created in this example
@@ -67,7 +65,6 @@ kubectl create -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/mast
 
 3. Create the nginx-ingress-controller
 
-For this example to work, the Service must be in the nginx-ingress namespace:
 
 ```sh
 kubectl create -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/nginx-ingress-controller.yml

@@ -1,29 +1,40 @@
-# 基于角色的访问控制
+# Role Based Access Control
 
-这个例子展示了如何应用一个基于角色的访问控制的nginx ingress控制器。
+This example demonstrates how to apply an nginx ingress controller with role based access control
 
-## 概述
+## Overview
 
-这个示例应用于在启用RBAC的环境中部署的nginx-ingss-控制器。
+This example applies to nginx-ingress-controllers being deployed in an
+environment with RBAC enabled.
 
-基于角色的访问控制由四个层次组成:
+Role Based Access Control is comprised of four layers:
 
-1.  `ClusterRole` - 分配给整个集群的角色权限
-2.  `ClusterRoleBinding` - 将一个ClusterRole绑定到某个帐户
-3.  `Role` - 分配给某个Namespace的角色权限
-4.  `RoleBinding` - 将Role绑定到某个帐户
+1.  `ClusterRole` - permissions assigned to a role that apply to an entire cluster
+2.  `ClusterRoleBinding` - binding a ClusterRole to a specific account
+3.  `Role` - permissions assigned to a role that apply to a specific namespace
+4.  `RoleBinding` - binding a Role to a specific account
 
-将"ServiceAccount"绑定到"Role"和"ClusterRole"定义的nginx-ingress-controller账户。
+In order for RBAC to be applied to an nginx-ingress-controller, that controller
+should be assigned to a `ServiceAccount`.  That `ServiceAccount` should be
+bound to the `Role`s and `ClusterRole`s defined for the
+nginx-ingress-controller.
 
-## 创建ServiceAccount
+## Service Accounts created in this example
 
-创建一个名称为nginx-ingress-serviceaccount的ServiceAccount示例。
+One ServiceAccount is created in this example, `nginx-ingress-serviceaccount`.
 
-## 定义权限
+## Permissions Granted in this example
 
-定义两组权限：一个名称为nginx-ingress-clusterrole的ClusterRole角色权限和一个名称为nginx-ingress-role的namespace角色权限。
+There are two sets of permissions defined in this example.  Cluster-wide
+permissions defined by the `ClusterRole` named `nginx-ingress-clusterrole`, and
+namespace specific permissions defined by the `Role` named
+`nginx-ingress-role`.
 
-### 集群权限
+### Cluster Permissions
+
+These permissions are granted in order for the nginx-ingress-controller to be
+able to function as an ingress across the cluster.  These permissions are
+granted to the ClusterRole named `nginx-ingress-clusterrole`
 
 * `configmaps`, `endpoints`, `nodes`, `pods`, `secrets`: list, watch
 * `nodes`: get
@@ -31,18 +42,70 @@
 * `events`: create, patch
 * `ingresses/status`: update
 
-### Namespace权限
+### Namespace Permissions
+
+These permissions are granted specific to the nginx-ingress namespace.  These
+permissions are granted to the Role named `nginx-ingress-role`
 
 * `configmaps`, `pods`, `secrets`: get
 * `endpoints`: create, get, update
 
+Furthermore to support leader-election, the nginx-ingress-controller needs to
+have access to a `configmap` using the resourceName `ingress-controller-leader-nginx`
+
+> Note that resourceNames can NOT be used to limit requests using the “create”
+> verb because authorizers only have access to information that can be obtained
+> from the request URL, method, and headers (resource names in a “create” request
+> are part of the request body).
+
 * `configmaps`: get, update (for resourceName `ingress-controller-leader-nginx`)
 * `configmaps`: create
+
+This resourceName is the concatenation of the `election-id` and the
+`ingress-class` as defined by the ingress-controller, which defaults to:
 
 * `election-id`: `ingress-controller-leader`
 * `ingress-class`: `nginx`
 * `resourceName` : `<election-id>-<ingress-class>`
 
+Please adapt accordingly if you overwrite either parameter when launching the
+nginx-ingress-controller.
+
 ### Bindings
 
-将服务帐户nginx-ingss-ServiceAccount绑定到nginx-ingress-role和nginx-ingress-clusterrole。
+The ServiceAccount `nginx-ingress-serviceaccount` is bound to the Role
+`nginx-ingress-role` and the ClusterRole `nginx-ingress-clusterrole`.
+
+## Namespace created in this example
+
+The `Namespace` named `nginx-ingress` is defined in this example.  The
+namespace name can be changed arbitrarily as long as all of the references
+change as well.
+
+
+## Usage
+
+1.  Create the `Namespace`, `Service Account`, `ClusterRole`, `Role`,
+`ClusterRoleBinding`, and `RoleBinding`.
+
+```sh
+kubectl create -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/nginx-ingress-controller-rbac.yml
+```
+
+2. Create default backend
+```sh
+kubectl create -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/default-backend.yml
+```
+
+3. Create the nginx-ingress-controller
+
+For this example to work, the Service must be in the nginx-ingress namespace:
+
+```sh
+kubectl create -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/nginx-ingress-controller.yml
+```
+
+The serviceAccountName associated with the containers in the deployment must
+match the serviceAccount from nginx-ingress-controller-rbac.yml  The namespace
+references in the Deployment metadata, container arguments, and POD_NAMESPACE
+should be in the nginx-ingress namespace.

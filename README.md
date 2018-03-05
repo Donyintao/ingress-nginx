@@ -55,17 +55,19 @@ ServiceAccount nginx-ingss-ServiceAccount将被绑定到nginx-ingss-role和nginx
 `ClusterRoleBinding`, and `RoleBinding`.
 
 ```sh
-kubectl create -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/nginx-ingress-controller-rbac.yml
+kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/nginx-ingress-namespace.yml
+kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/nginx-ingress-rbac.yml
 ```
 
 2. Create default backend
 ```sh
-kubectl create -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/default-backend.yml
+kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/default-backend.yml
 ```
 
 3. Create the nginx-ingress-controller
 
 
 ```sh
-kubectl create -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/nginx-ingress-controller.yml
+kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/nginx-ingress-configmap.yml
+kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/nginx-ingress-controller.yml
 ```

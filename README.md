@@ -1,73 +1,40 @@
-# Role Based Access Control
+# Kubernetes 服务暴露介绍
 
-这个例子演示了如何部署一个nginx ingress controller和基于RBAC角色的访问控制, 并使用ConfigMap来启用nginx vts模块和普罗米修斯的输出指标。
+Ingress是Kubernetes 1.2版本以后出现的服务暴露功能；到目前为止Kubernetes总共有三种暴露服务的方式: LoadBlancer Service、NodePort Service、Ingress。
 
-## Overview
+## Ingress介绍
 
-这个例子适用于nginx-ingress-controllers被部署在一个启用了RBAC的环境。
+简单来说就是Ingress可以通过nginx等开源的反向代理负载均衡器实现对外暴露服务
 
-Role Based Access Control是由四个资源组成 :
+## Ingress组件
 
-1.  `ClusterRole` - 权限分配给角色,适用于整个cluster
-2.  `ClusterRoleBinding` - 绑定ClusterRole到一个特定的帐户
-3.  `Role` - 权限分配给角色,适用于一个指定的namespace
-4.  `RoleBinding` - 绑定Role到一个指定的帐户
+- 反向代理负载均衡器
+- Ingress Controller
+- Ingress
 
-为了将RBAC适用到nginx-ingss-controller，将该controller分配给ServiceAccount。这个ServiceAccount需要绑定到nginx-ingress-controller中定义的Roles和ClusterRoles。
+### 反向代理负载均衡器
 
-## Service Accounts created in this example
+反向代理负载均衡器很简单，说白了就是 nginx、apache 什么的；在集群中反向代理负载均衡器可以自由部署，可以使用 Replication Controller、Deployment、DaemonSet 等方式部署。
 
-本示例中定义了一个ServiceAccount示例, `nginx-ingress-serviceaccount`.
+### Ingress Controller
 
-## Permissions Granted in this example
+Ingress Controller实质上可以理解为是个监视器Ingress Controller通过不断地跟kubernetes API打交道，实时的感知后端 service、pod 等变化，比如新增和减少 pod，service 增加与减少等；当得到这些变化信息后，Ingress Controller再结合下文的 Ingress生成配置，然后更新反向代理负载均衡器，并刷新其配置，达到服务发现的作用。
 
-本示例中定义了两组权限。由ClusterRole名为nginx-ingress-clusterrole定义的集群范围权限和名为nginx-ingress-role的Role定义的名称空间特定权限。
+### Ingress
 
-### Cluster Permissions
+Ingress 简单理解就是个规则定义；比如说某个域名对应某个 service，即当某个域名的请求进来时转发给某个service;这个规则将与 Ingress Controller结合，然后 Ingress Controller 将其动态写入到负载均衡器配置中，从而实现整体的服务发现和负载均衡。
 
-这些权限是为了使nginx-ingress-controller能够作为跨集群的ingress的功能而授予的。这些权限被授予了名为nginx-ingress-ClusterRole的ClusterRole。
+## nginx-ingress-controller使用
 
-* `configmaps`, `endpoints`, `nodes`, `pods`, `secrets`: list, watch
-* `nodes`: get
-* `services`, `ingresses`: get, list, watch
-* `events`: create, patch
-* `ingresses/status`: update
+Kubernetes已经将Nginx与Ingress Controller合并为一个组件，所以Nginx无需单独部署，只需要部署Ingress Controller即可。
 
-### Namespace Permissions
+### Install
 
-这些权限主要用于nginx-ingress namespace。这些权限被授予了名为nginx-ingress-role的Role
-
-* `configmaps`, `pods`, `secrets`: get
-* `endpoints`: create, get, update
-
-### Bindings
-
-ServiceAccount nginx-ingss-ServiceAccount将被绑定到nginx-ingss-role和nginx-ingress-ClusterRole。
-
-## Namespace created in this example
-
-在本例中定义了名为nginx-ingress的名称空间。
-
-
-## Usage
-
-1.  Create the `Namespace`, `Service Account`, `ClusterRole`, `Role`,
-`ClusterRoleBinding`, and `RoleBinding`.
+注意： nginx-ingress-controller v0.16.0版本后移除了`nginx-module-vts`模块，不支持域名监控
 
 ```sh
-kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/nginx-ingress-namespace.yaml
-kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/nginx-ingress-rbac.yaml
-```
-
-2. Create default backend
-```sh
-kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/default-backend.yaml
-```
-
-3. Create the nginx-ingress-controller
-
-
-```sh
-kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/nginx-ingress-configmap.yaml
+kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/ingress-nginx-namespace.yaml
+kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/ingress-nginx-rbac.yaml
+kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/ingress-nginx-configmap.yaml
 kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/nginx-ingress-controller.yaml
 ```

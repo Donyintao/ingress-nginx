@@ -1,37 +1,69 @@
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: nginx-deployment
+  name: nginx
+  namespace: testing
 spec:
   replicas: 1
   template:
     metadata:
       labels:
         app: nginx
+        version: v1.15.3
     spec:
       containers:
       - name: nginx
-        image: nginx:1.7.9
+        image: nginx：1.15.3
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: tz-config
+          mountPath: /etc/localtime
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "0.5"
+          limits:
+            memory: "64Mi"
+            cpu: "0.5"
         ports:
         - containerPort: 80
-
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1 
+      volumes:
+      - name: tz-config
+        hostPath:
+          path: /usr/share/zoneinfo/Asia/Shanghai
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
   name: nginx
+  namespace: testing
 spec:
   ports:
-  - name: nginx
+  - name: http
     port: 80
     targetPort: 80
     protocol: TCP
   selector:
     app: nginx
-
 ---
-
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -40,7 +72,7 @@ metadata:
     app: nginx
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    # 关闭强制跳https
+    # https redirect off
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   tls:
@@ -53,7 +85,5 @@ spec:
       paths:
       - path: /
         backend:
-          # 与Service Port保持一致
-          servicePort: 80
-          # 与Service服务名称保持一致
           serviceName: nginx
+          servicePort: 80

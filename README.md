@@ -24,17 +24,17 @@ Ingress Controller实质上可以理解为是个监视器Ingress Controller通�
 
 Ingress 简单理解就是个规则定义；比如说某个域名对应某个 service，即当某个域名的请求进来时转发给某个service;这个规则将与 Ingress Controller结合，然后 Ingress Controller 将其动态写入到负载均衡器配置中，从而实现整体的服务发现和负载均衡。
 
-## nginx-ingress-controller使用
+## ingress-nginx-controller
 
 Kubernetes已经将Nginx与Ingress Controller合并为一个组件，所以Nginx无需单独部署，只需要部署Ingress Controller即可。
 
-### 服务部署
+### Ingress Controller install
 
-注意： nginx-ingress-controller v0.16.0版本后移除了`nginx-module-vts`模块，采用全新的方式来监控域名和服务状态。
+注意: nginx-ingress-controller v0.16.0版本后移除了`nginx-module-vts`模块，采用全新的方式来监控域名和服务状态。
 
 ```sh
-kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/ingress-nginx-namespace.yaml
-kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/ingress-nginx-rbac.yaml
-kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/ingress-nginx-configmap.yaml
-kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/nginx-ingress-controller.yaml
+# kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/ingress-nginx-namespace.yaml
+# kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/ingress-nginx-rbac.yaml
+# kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/ingress-nginx-configmap.yaml
+# kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/ingress-nginx-controller.yaml
 ```

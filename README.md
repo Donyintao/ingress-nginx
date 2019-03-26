@@ -30,7 +30,7 @@ Kubernetes已经将Nginx与Ingress Controller合并为一个组件，所以Nginx
 
 ### Ingress Controller install
 
-注意: nginx-ingress-controller v0.16.0版本后移除了`nginx-module-vts`模块，采用全新的方式来监控域名和服务状态。
+注意: ingress-nginx-controller在`v0.16.0`以上的版本移除了`nginx-module-vts`模块，采用全新的方式来监控域名和服务状态。
 
 ```sh
 # kubectl apply -f https://raw.githubusercontent.com/Donyintao/nginx-ingress/master/ingress-nginx-namespace.yaml
